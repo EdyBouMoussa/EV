@@ -85,27 +85,68 @@ echo ============================================================
 echo.
 
 REM Create virtual environment
-if not exist "backend\.venv" (
-    echo Creating virtual environment...
+echo Checking for existing virtual environment...
+if not exist "backend\.venv\Scripts\python.exe" (
+    echo Virtual environment not found. Creating new one...
+    if not exist "backend" (
+        echo ERROR: backend directory not found!
+        echo Current directory: %CD%
+        pause
+        exit /b 1
+    )
+    echo.
+    echo Creating virtual environment in: %CD%\backend\.venv
     cd backend
     python -m venv .venv
     if errorlevel 1 (
+        echo.
         echo ERROR: Failed to create virtual environment!
+        echo Make sure Python is installed and accessible.
+        echo Try running: python --version
         pause
         exit /b 1
     )
     cd ..
+    
+    REM Wait a moment for files to be written
+    timeout /t 1 /nobreak >nul
+    
+    REM Verify venv was created
+    if not exist "backend\.venv\Scripts\python.exe" (
+        echo.
+        echo ERROR: Virtual environment was not created properly!
+        echo Expected: %CD%\backend\.venv\Scripts\python.exe
+        echo.
+        echo Checking what was created...
+        if exist "backend\.venv" (
+            echo Directory backend\.venv exists but python.exe is missing.
+            echo The venv creation may have failed silently.
+        ) else (
+            echo Directory backend\.venv does not exist at all.
+        )
+        pause
+        exit /b 1
+    )
     echo Virtual environment created successfully!
+    echo Location: %CD%\backend\.venv
 ) else (
     echo Virtual environment already exists.
+    echo Location: %CD%\backend\.venv
 )
 
 REM Install dependencies
 echo.
 echo Installing Python dependencies...
+if not exist "backend\.venv\Scripts\pip.exe" (
+    echo ERROR: pip.exe not found in virtual environment!
+    echo Virtual environment may not be set up correctly.
+    pause
+    exit /b 1
+)
 call backend\.venv\Scripts\pip.exe install -r requirements.txt
 if errorlevel 1 (
     echo ERROR: Failed to install dependencies!
+    echo Make sure you're connected to the internet and pip is working.
     pause
     exit /b 1
 )
