@@ -13,15 +13,21 @@ React + Flask + MySQL app to view EV charging ports on a map of Lebanon, authent
 
 Run the setup script to initialize everything:
 
+**Windows (Recommended):**
+```cmd
+setup.bat
+```
+
+**Cross-platform (Python):**
 ```bash
 python setup.py
 ```
 
 This will:
-- ✅ Check prerequisites
+- ✅ Check prerequisites (Python, Node.js, npm)
 - ✅ Guide you through database setup
 - ✅ Create Python virtual environment
-- ✅ Install all dependencies
+- ✅ Install all dependencies (including cryptography)
 - ✅ Create database tables
 - ✅ Seed sample data
 - ✅ Install frontend dependencies
