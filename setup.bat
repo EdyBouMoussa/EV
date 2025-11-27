@@ -1,14 +1,29 @@
 @echo off
+setlocal enabledelayedexpansion
 REM Setup script for EV Ports Application
 REM Run this after cloning the repository to initialize everything.
+
+REM Test that batch file is working
+echo Starting setup script...
+timeout /t 1 /nobreak >nul
+
+REM Change to the directory where this batch file is located
+cd /d "%~dp0"
+if errorlevel 1 (
+    echo.
+    echo ERROR: Could not change to script directory!
+    echo Path: %~dp0
+    echo.
+    pause
+    exit /b 1
+)
 
 echo ============================================================
 echo EV Ports Application - Setup Script
 echo ============================================================
+echo Current directory: %CD%
+echo Script location: %~dp0
 echo.
-
-REM Change to the directory where this batch file is located
-cd /d "%~dp0"
 
 REM Step 1: Check Prerequisites
 echo ============================================================
@@ -17,34 +32,41 @@ echo ============================================================
 echo.
 
 REM Check Python
+echo Checking Python...
 python --version >nul 2>&1
 if errorlevel 1 (
+    echo.
     echo ERROR: Python not found! Please install Python 3.11+
+    echo Make sure Python is in your PATH.
+    echo.
     pause
     exit /b 1
-) else (
-    for /f "tokens=*" %%i in ('python --version') do echo Python: %%i
 )
+python --version
 
 REM Check Node.js
+echo Checking Node.js...
 node --version >nul 2>&1
 if errorlevel 1 (
+    echo.
     echo ERROR: Node.js not found! Please install Node.js 18+
+    echo.
     pause
     exit /b 1
-) else (
-    for /f "tokens=*" %%i in ('node --version') do echo Node.js: %%i
 )
+node --version
 
 REM Check npm
+echo Checking npm...
 npm --version >nul 2>&1
 if errorlevel 1 (
+    echo.
     echo ERROR: npm not found!
+    echo.
     pause
     exit /b 1
-) else (
-    for /f "tokens=*" %%i in ('npm --version') do echo npm: %%i
 )
+npm --version
 
 echo.
 echo All prerequisites found!
