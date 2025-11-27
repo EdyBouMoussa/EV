@@ -31,14 +31,77 @@ if not exist "frontend\node_modules" (
 
 REM Determine Python command based on venv
 set PYTHON_CMD=python
+set VENV_EXISTS=0
 if exist "backend\.venv\Scripts\python.exe" (
     set PYTHON_CMD=backend\.venv\Scripts\python.exe
+    set VENV_EXISTS=1
     echo Using virtual environment Python...
 ) else if exist "backend\venv\Scripts\python.exe" (
     set PYTHON_CMD=backend\venv\Scripts\python.exe
+    set VENV_EXISTS=1
     echo Using virtual environment Python...
 ) else (
-    echo No virtual environment found. Using system Python...
+    echo.
+    echo ============================================================
+    echo WARNING: No virtual environment found!
+    echo ============================================================
+    echo.
+    echo The virtual environment has not been created yet.
+    echo You need to run setup.bat first to initialize the project.
+    echo.
+    echo Would you like to:
+    echo   1. Run setup.bat now (recommended)
+    echo   2. Create venv and install dependencies automatically
+    echo   3. Continue with system Python (not recommended)
+    echo.
+    set /p CHOICE="Enter choice (1/2/3): "
+    
+    if "%CHOICE%"=="1" (
+        echo.
+        echo Running setup.bat...
+        call setup.bat
+        if errorlevel 1 (
+            echo Setup failed! Please run setup.bat manually.
+            pause
+            exit /b 1
+        )
+        REM Re-check for venv after setup
+        if exist "backend\.venv\Scripts\python.exe" (
+            set PYTHON_CMD=backend\.venv\Scripts\python.exe
+            set VENV_EXISTS=1
+        ) else if exist "backend\venv\Scripts\python.exe" (
+            set PYTHON_CMD=backend\venv\Scripts\python.exe
+            set VENV_EXISTS=1
+        )
+    ) else if "%CHOICE%"=="2" (
+        echo.
+        echo Creating virtual environment...
+        cd backend
+        python -m venv .venv
+        if errorlevel 1 (
+            echo Failed to create virtual environment!
+            pause
+            exit /b 1
+        )
+        cd ..
+        echo Installing dependencies...
+        call backend\.venv\Scripts\pip.exe install -r requirements.txt
+        if errorlevel 1 (
+            echo Failed to install dependencies!
+            pause
+            exit /b 1
+        )
+        set PYTHON_CMD=backend\.venv\Scripts\python.exe
+        set VENV_EXISTS=1
+        echo Virtual environment created and dependencies installed!
+    ) else (
+        echo.
+        echo WARNING: Using system Python. This is not recommended!
+        echo Make sure all dependencies are installed globally.
+        echo.
+        pause
+    )
+    echo.
 )
 
 REM Check if cryptography is installed (required for MySQL)
@@ -61,10 +124,12 @@ if errorlevel 1 (
 
 REM Start backend server in a new window
 echo Starting backend server...
-if exist "backend\.venv\Scripts\activate.bat" (
-    start "Backend Server" cmd /k "cd /d %CD% && call backend\.venv\Scripts\activate.bat && python -m backend.app"
-) else if exist "backend\venv\Scripts\activate.bat" (
-    start "Backend Server" cmd /k "cd /d %CD% && call backend\venv\Scripts\activate.bat && python -m backend.app"
+if %VENV_EXISTS%==1 (
+    if exist "backend\.venv\Scripts\activate.bat" (
+        start "Backend Server" cmd /k "cd /d %CD% && call backend\.venv\Scripts\activate.bat && python -m backend.app"
+    ) else (
+        start "Backend Server" cmd /k "cd /d %CD% && call backend\venv\Scripts\activate.bat && python -m backend.app"
+    )
 ) else (
     start "Backend Server" cmd /k "cd /d %CD% && python -m backend.app"
 )
